@@ -57,11 +57,11 @@
       color: var(--text);
       line-height: 1.45;
       transition: background 0.2s ease, color 0.2s ease;
-      padding-bottom: 40px;
+      padding-bottom: 48px;
     }
 
     .container {
-      max-width: 1440px;
+      max-width: 1480px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -167,7 +167,7 @@
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
     }
 
@@ -189,7 +189,7 @@
     }
 
     .kpi-value {
-      font-size: 1.65rem;
+      font-size: 1.6rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.02em;
@@ -199,6 +199,34 @@
       margin-top: 6px;
       font-size: 0.82rem;
       color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .limits-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .limit-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+    }
+
+    .limit-item .l-name {
+      color: var(--text-muted);
+    }
+
+    .limit-item .l-val {
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
 
@@ -225,7 +253,51 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .cell-chart-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
       margin-bottom: 14px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+
+    .selected-cells-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cell-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .cell-pill button {
+      padding: 0 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .cell-pill button:hover {
+      color: var(--red);
     }
 
     .toggles {
@@ -263,7 +335,7 @@
 
     .chart-wrap {
       position: relative;
-      height: 340px;
+      height: 360px;
       width: 100%;
     }
 
@@ -275,9 +347,9 @@
 
     .pile-overview {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .mini-stat {
@@ -293,10 +365,58 @@
     }
 
     .mini-stat .val {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 700;
       margin-top: 2px;
       font-variant-numeric: tabular-nums;
+    }
+
+    .extremes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .extreme-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .extreme-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 9px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-size: 0.84rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .extreme-row .ex-main {
+      font-weight: 700;
+    }
+
+    .extreme-row .ex-sub {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .extreme-row .ex-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-xs {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      border-radius: 7px;
     }
 
     .modules-grid {
@@ -336,7 +456,7 @@
 
     .cells-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       gap: 6px;
     }
 
@@ -346,12 +466,17 @@
       background: var(--surface-2);
       border: 1px solid var(--border);
       font-variant-numeric: tabular-nums;
-      transition: transform 0.1s ease;
+      cursor: pointer;
+      transition: transform 0.1s ease, border-color 0.1s ease;
     }
 
     .cell-box:hover {
       transform: translateY(-1px);
       border-color: var(--accent);
+    }
+
+    .cell-box.is-plotted {
+      box-shadow: inset 0 0 0 2px var(--accent);
     }
 
     .cell-box .c-id {
@@ -392,7 +517,7 @@
         grid-template-columns: 1fr;
       }
       .chart-wrap {
-        height: 270px;
+        height: 280px;
       }
     }
   </style>
@@ -426,34 +551,58 @@
 
     <div id="errorBanner" class="error-banner"></div>
 
+    <!-- Přehled úložiště + extrémy + limity BMS -->
     <div class="section-header" style="margin-top: 0;">
       <div class="section-title">Přehled celého úložiště a extrémy článků</div>
       <div id="systemBadges"></div>
     </div>
 
     <div class="kpi-grid" id="storageKpis"></div>
+    <div class="limits-bar" id="bmsLimitsBar"></div>
 
+    <!-- Graf -->
     <div class="card chart-card">
       <div class="chart-toolbar">
         <div>
-          <div class="section-title">Vývoj napětí článků a systémových veličin</div>
-          <div class="sub" style="font-size: 0.8rem; color: var(--text-muted);">
-            Kliknutím na štítky zapneš nebo vypneš další křivky v grafu
+          <div class="section-title">Vývoj napětí článků, extrémů a systémových veličin</div>
+          <div id="chartHint" class="sub" style="font-size: 0.8rem; color: var(--text-muted);">
+            Kliknutím na štítky zapneš křivky; vybrané články z aktuální věže se vykreslují u surových (raw) dat.
           </div>
         </div>
         <div class="toggles" id="seriesToggles"></div>
       </div>
+
+      <div class="cell-chart-controls">
+        <strong>Články v grafu:</strong>
+        <button id="toggleTop3MaxBtn" class="btn-xs">Top 3 max (věž)</button>
+        <button id="toggleTop3MinBtn" class="btn-xs">Top 3 min (věž)</button>
+        <select id="cellPickerSelect" title="Přidat konkrétní článek z vybrané věže">
+          <option value="">+ Přidat článek z věže…</option>
+        </select>
+        <button id="clearCellsBtn" class="btn-xs">Vymazat články</button>
+        <div id="selectedCellsChips" class="selected-cells-chips"></div>
+      </div>
+
       <div class="chart-wrap">
         <canvas id="telemetryChart"></canvas>
       </div>
     </div>
 
+    <!-- Věže -> Top 3 min/max -> Moduly -> Články -->
     <div class="section-header">
-      <div class="section-title">Detail věží, modulů a jednotlivých článků</div>
-      <div class="pile-tabs" id="pileTabs"></div>
+      <div class="section-title">Detail věží, extrémních článků a modulů</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+        <select id="cellFilterSelect" title="Filtr článků v modulech">
+          <option value="all">Všechny články</option>
+          <option value="diff15">Odchylka ≥ 15 mV</option>
+          <option value="extremes">Top 3 min & max věže</option>
+        </select>
+        <div class="pile-tabs" id="pileTabs"></div>
+      </div>
     </div>
 
     <div class="pile-overview" id="pileOverview"></div>
+    <div class="extremes-grid" id="pileExtremes"></div>
     <div class="modules-grid" id="modulesGrid"></div>
   </div>
 
@@ -465,15 +614,25 @@
     const RPC_NAME = "get_pylontech_telemetry_sampled";
     // ==========================================================
 
+    const CELL_PALETTE = [
+      "#ec4899", "#14b8a6", "#a855f7", "#eab308",
+      "#6366f1", "#f43f5e", "#0ea5e9", "#84cc16"
+    ];
+
     const state = {
       rows: [],
       latestRow: null,
       selectedDevice: null,
       selectedPileIdx: 0,
       rangeMinutes: 360,
+      cellFilter: "all",
       autoRefresh: true,
       timerId: null,
       chart: null,
+      showTop3Max: false,
+      showTop3Min: false,
+      // Pole položek: { pileIdx, globalIdx, label }
+      customCells: [],
       seriesConfig: [
         { key: "cellMax",   label: "Max článek (V)",     color: "#f59e0b", yAxisID: "yCell", enabled: true },
         { key: "cellMin",   label: "Min článek (V)",     color: "#3b82f6", yAxisID: "yCell", enabled: true },
@@ -541,14 +700,8 @@
           })
         ]);
 
-        if (!latestRes.ok) {
-          const text = await latestRes.text();
-          throw new Error(`Latest HTTP ${latestRes.status}: ${text}`);
-        }
-        if (!seriesRes.ok) {
-          const text = await seriesRes.text();
-          throw new Error(`RPC HTTP ${seriesRes.status}: ${text}`);
-        }
+        if (!latestRes.ok) throw new Error(`Latest HTTP ${latestRes.status}: ${await latestRes.text()}`);
+        if (!seriesRes.ok) throw new Error(`RPC HTTP ${seriesRes.status}: ${await seriesRes.text()}`);
 
         const latestArr = await latestRes.json();
         const seriesArr = await seriesRes.json();
@@ -578,11 +731,8 @@
     function updateDeviceSelector(rows) {
       const sel = document.getElementById("deviceSelect");
       const devices = [...new Set(rows.map(r => r.device_id).filter(Boolean))];
-      if (devices.length === 0) return;
-
-      if (!state.selectedDevice) {
-        state.selectedDevice = devices[0];
-      }
+      if (!devices.length) return;
+      if (!state.selectedDevice) state.selectedDevice = devices[0];
 
       const existing = new Set([...sel.options].map(o => o.value));
       devices.forEach(d => {
@@ -596,11 +746,36 @@
       sel.value = state.selectedDevice;
     }
 
+    function flattenPileCells(pile) {
+      const mods = Array.isArray(pile?.mods) ? pile.mods : [];
+      const result = [];
+      let globalIdx = 0;
+      mods.forEach((m, mIdx) => {
+        const cells = Array.isArray(m.cells) ? m.cells : [];
+        cells.forEach((c, cIdx) => {
+          const mv = typeof c === "number" ? c : c?.mv;
+          const temp = (typeof c === "object" && c?.t != null) ? Number(c.t) : null;
+          if (mv != null) {
+            result.push({
+              globalIdx,
+              pileMod: mIdx + 1,
+              cellInMod: cIdx + 1,
+              mv: Number(mv),
+              v: Number(mv) / 1000,
+              temp
+            });
+          }
+          globalIdx++;
+        });
+      });
+      return result;
+    }
+
     function locateCellInPiles(piles, globalCellIdx) {
       if (!Array.isArray(piles) || globalCellIdx == null) return null;
+      let acc = 0;
       for (let p = 0; p < piles.length; p++) {
         const mods = piles[p].mods || [];
-        let acc = 0;
         for (let m = 0; m < mods.length; m++) {
           const len = (mods[m].cells || []).length;
           if (globalCellIdx >= acc && globalCellIdx < acc + len) {
@@ -642,8 +817,11 @@
         `Poslední záznam: ${dt.toLocaleString("cs-CZ")} (před ${ageSec} s) • Bodů v grafu: ${state.rows.length} (${getSamplingLabel(state.rangeMinutes)})`;
 
       renderStorageKpis(latest);
-      renderChart();
+      renderBmsLimits(latest);
       renderPilesAndModules(latest);
+      renderCellPicker(latest);
+      renderSelectedCellChips();
+      renderChart();
     }
 
     function renderStorageKpis(r) {
@@ -714,6 +892,76 @@
       `;
     }
 
+    function renderBmsLimits(r) {
+      const fmtV = v => v != null ? `${Number(v).toFixed(1)} V` : "—";
+      const fmtA = a => a != null ? `${Number(a).toFixed(1)} A` : "—";
+
+      document.getElementById("bmsLimitsBar").innerHTML = `
+        <div class="limit-item">
+          <span class="l-name">BMS Max nabíjecí napětí</span>
+          <span class="l-val" style="color:var(--green);">${fmtV(r.max_charge_voltage_v)}</span>
+        </div>
+        <div class="limit-item">
+          <span class="l-name">BMS Max nabíjecí proud</span>
+          <span class="l-val" style="color:var(--green);">${fmtA(r.max_charge_current_a)}</span>
+        </div>
+        <div class="limit-item">
+          <span class="l-name">BMS Min vybíjecí napětí</span>
+          <span class="l-val" style="color:var(--amber);">${fmtV(r.min_discharge_voltage_v)}</span>
+        </div>
+        <div class="limit-item">
+          <span class="l-name">BMS Max vybíjecí proud</span>
+          <span class="l-val" style="color:var(--amber);">${fmtA(r.max_discharge_current_a)}</span>
+        </div>
+      `;
+    }
+
+    // --- Výběr konkrétních článků do grafu ---
+    function toggleCustomCell(pileIdx, globalIdx, label) {
+      const existsIdx = state.customCells.findIndex(c => c.pileIdx === pileIdx && c.globalIdx === globalIdx);
+      if (existsIdx >= 0) {
+        state.customCells.splice(existsIdx, 1);
+      } else {
+        state.customCells.push({ pileIdx, globalIdx, label });
+      }
+      renderSelectedCellChips();
+      renderChart();
+      const latest = state.latestRow || state.rows[state.rows.length - 1];
+      if (latest) renderPilesAndModules(latest);
+    }
+
+    function renderCellPicker(latest) {
+      const picker = document.getElementById("cellPickerSelect");
+      const piles = Array.isArray(latest?.piles) ? latest.piles : [];
+      const pile = piles[state.selectedPileIdx];
+      const flat = flattenPileCells(pile);
+
+      picker.innerHTML = `<option value="">+ Přidat článek z věže #${state.selectedPileIdx + 1}…</option>` +
+        flat.map(c => `<option value="${c.globalIdx}">#${c.globalIdx} (Mod ${c.pileMod}, čl. ${c.cellInMod}) – ${c.v.toFixed(3)} V</option>`).join("");
+    }
+
+    function renderSelectedCellChips() {
+      const wrap = document.getElementById("selectedCellsChips");
+      wrap.innerHTML = state.customCells.map((c, idx) => `
+        <span class="cell-pill">
+          <span class="chip-dot" style="background:${CELL_PALETTE[idx % CELL_PALETTE.length]};"></span>
+          V${c.pileIdx + 1} • ${c.label}
+          <button type="button" data-del="${idx}" title="Odebrat z grafu">×</button>
+        </span>
+      `).join("");
+
+      wrap.querySelectorAll("button[data-del]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.customCells.splice(Number(btn.dataset.del), 1);
+          renderSelectedCellChips();
+          renderChart();
+          const latest = state.latestRow || state.rows[state.rows.length - 1];
+          if (latest) renderPilesAndModules(latest);
+        });
+      });
+    }
+
+    // --- Přepínače sérií a Chart.js ---
     function renderSeriesToggles() {
       const container = document.getElementById("seriesToggles");
       container.innerHTML = state.seriesConfig.map((s, idx) => `
@@ -731,6 +979,14 @@
           renderChart();
         });
       });
+    }
+
+    function getCellVoltageFromRow(row, pileIdx, globalIdx) {
+      const piles = row?.piles;
+      if (!Array.isArray(piles) || !piles[pileIdx]) return null;
+      const flat = flattenPileCells(piles[pileIdx]);
+      const found = flat.find(c => c.globalIdx === globalIdx);
+      return found ? found.v : null;
     }
 
     function renderChart() {
@@ -759,25 +1015,86 @@
         tempMin:  r => r.cell_min_temp_c
       };
 
+      const datasets = [];
       const activeSeries = state.seriesConfig.filter(s => s.enabled);
-      const datasets = activeSeries.map(s => ({
-        label: s.label,
-        data: state.rows.map(extractors[s.key]),
-        borderColor: s.color,
-        backgroundColor: s.color + "22",
-        borderWidth: 2,
-        pointRadius: state.rows.length > 180 ? 0 : 2,
-        pointHoverRadius: 4,
-        tension: 0.2,
-        yAxisID: s.yAxisID
-      }));
 
-      const hasAxis = id => activeSeries.some(s => s.yAxisID === id);
+      activeSeries.forEach(s => {
+        datasets.push({
+          label: s.label,
+          data: state.rows.map(extractors[s.key]),
+          borderColor: s.color,
+          backgroundColor: s.color + "22",
+          borderWidth: 2,
+          pointRadius: state.rows.length > 180 ? 0 : 2,
+          pointHoverRadius: 4,
+          tension: 0.2,
+          yAxisID: s.yAxisID
+        });
+      });
+
+      // Top 3 max / Top 3 min články z aktuální věže
+      const latest = state.latestRow || state.rows[state.rows.length - 1];
+      const latestPile = latest?.piles?.[state.selectedPileIdx];
+      const sortedCells = flattenPileCells(latestPile).sort((a, b) => a.mv - b.mv);
+      const top3Min = sortedCells.slice(0, 3);
+      const top3Max = sortedCells.slice(-3).reverse();
+
+      const hasRawCellData = state.rows.some(r => Array.isArray(r.piles) && r.piles.length > 0);
+      const hintEl = document.getElementById("chartHint");
+      if ((state.showTop3Max || state.showTop3Min || state.customCells.length > 0) && !hasRawCellData) {
+        hintEl.textContent = "U zvoleného delšího rozsahu nejsou v agregovaných bodech uloženy jednotlivé články – přepni na 1 h nebo 6 h pro křivky článků.";
+      } else {
+        hintEl.textContent = "Kliknutím na štítky zapneš křivky; kliknutím na článek v přehledu nebo v liště přidáš jeho křivku do grafu.";
+      }
+
+      if (state.showTop3Max) {
+        top3Max.forEach((c, idx) => {
+          datasets.push({
+            label: `Top ${idx + 1} max: #${c.globalIdx} (M${c.pileMod}/Č${c.cellInMod})`,
+            data: state.rows.map(r => getCellVoltageFromRow(r, state.selectedPileIdx, c.globalIdx)),
+            borderColor: ["#f59e0b", "#fbbf24", "#fcd34d"][idx],
+            borderWidth: 1.8,
+            borderDash: [5, 3],
+            pointRadius: 0,
+            tension: 0.2,
+            yAxisID: "yCell"
+          });
+        });
+      }
+
+      if (state.showTop3Min) {
+        top3Min.forEach((c, idx) => {
+          datasets.push({
+            label: `Top ${idx + 1} min: #${c.globalIdx} (M${c.pileMod}/Č${c.cellInMod})`,
+            data: state.rows.map(r => getCellVoltageFromRow(r, state.selectedPileIdx, c.globalIdx)),
+            borderColor: ["#3b82f6", "#60a5fa", "#93c5fd"][idx],
+            borderWidth: 1.8,
+            borderDash: [2, 3],
+            pointRadius: 0,
+            tension: 0.2,
+            yAxisID: "yCell"
+          });
+        });
+      }
+
+      state.customCells.forEach((c, idx) => {
+        const col = CELL_PALETTE[idx % CELL_PALETTE.length];
+        datasets.push({
+          label: `Článek V${c.pileIdx + 1} • ${c.label}`,
+          data: state.rows.map(r => getCellVoltageFromRow(r, c.pileIdx, c.globalIdx)),
+          borderColor: col,
+          backgroundColor: col + "22",
+          borderWidth: 2.2,
+          pointRadius: 0,
+          tension: 0.2,
+          yAxisID: "yCell"
+        });
+      });
+
+      const hasAxis = id => datasets.some(ds => ds.yAxisID === id);
 
       const ctx = document.getElementById("telemetryChart").getContext("2d");
-      if (state.chart) {
-        state.chart.destroy();
-      }
+      if (state.chart) state.chart.destroy();
 
       state.chart = new Chart(ctx, {
         type: "line",
@@ -788,7 +1105,10 @@
           animation: false,
           interaction: { mode: "index", intersect: false },
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: datasets.length > 5,
+              labels: { color: tickColor, boxWidth: 12, font: { size: 11 } }
+            },
             tooltip: {
               backgroundColor: isDark ? "#1e293b" : "#0f172a",
               titleColor: "#f8fafc",
@@ -847,22 +1167,23 @@
       });
     }
 
+    // --- Věže, Top 3 min/max, moduly a články ---
     function renderPilesAndModules(latest) {
       const piles = Array.isArray(latest.piles) ? latest.piles : [];
       const tabsEl = document.getElementById("pileTabs");
       const overviewEl = document.getElementById("pileOverview");
+      const extremesEl = document.getElementById("pileExtremes");
       const gridEl = document.getElementById("modulesGrid");
 
-      if (piles.length === 0) {
+      if (!piles.length) {
         tabsEl.innerHTML = "";
         overviewEl.innerHTML = "";
+        extremesEl.innerHTML = "";
         gridEl.innerHTML = `<div class="card">V poli <code>piles</code> zatím nejsou žádná data věží.</div>`;
         return;
       }
 
-      if (state.selectedPileIdx >= piles.length) {
-        state.selectedPileIdx = 0;
-      }
+      if (state.selectedPileIdx >= piles.length) state.selectedPileIdx = 0;
 
       tabsEl.innerHTML = piles.map((p, idx) => `
         <button class="${idx === state.selectedPileIdx ? "active" : ""}" data-pile="${idx}">
@@ -873,26 +1194,23 @@
       tabsEl.querySelectorAll("button").forEach(btn => {
         btn.addEventListener("click", () => {
           state.selectedPileIdx = Number(btn.dataset.pile);
-          renderPilesAndModules(latest);
+          renderAll();
         });
       });
 
       const pile = piles[state.selectedPileIdx];
       const mods = Array.isArray(pile.mods) ? pile.mods : [];
+      const flatCells = flattenPileCells(pile);
+      const sortedAsc = [...flatCells].sort((a, b) => a.mv - b.mv);
 
-      const allMv = [];
-      mods.forEach(m => {
-        (m.cells || []).forEach(c => {
-          const mv = typeof c === "number" ? c : c?.mv;
-          if (mv != null) allMv.push(mv);
-        });
-      });
+      const pileMin = sortedAsc.length ? sortedAsc[0].mv : 0;
+      const pileMax = sortedAsc.length ? sortedAsc[sortedAsc.length - 1].mv : 0;
+      const pileMed = sortedAsc.length ? sortedAsc[Math.floor(sortedAsc.length / 2)].mv : 0;
+      const pileDiff = pileMax - pileMin;
 
-      const sortedMv = [...allMv].sort((a, b) => a - b);
-      const pileMinMv = sortedMv.length ? sortedMv[0] : 0;
-      const pileMaxMv = sortedMv.length ? sortedMv[sortedMv.length - 1] : 0;
-      const pileMedMv = sortedMv.length ? sortedMv[Math.floor(sortedMv.length / 2)] : 0;
-      const pileDiffMv = pileMaxMv - pileMinMv;
+      const top3Low = sortedAsc.slice(0, 3);
+      const top3High = [...sortedAsc].reverse().slice(0, 3);
+      const extremeSet = new Set([...top3Low.map(x => x.globalIdx), ...top3High.map(x => x.globalIdx)]);
 
       overviewEl.innerHTML = `
         <div class="mini-stat">
@@ -909,13 +1227,48 @@
         </div>
         <div class="mini-stat">
           <div class="lbl">Moduly / Články</div>
-          <div class="val">${mods.length} mod / ${allMv.length} čl.</div>
+          <div class="val">${mods.length} mod / ${flatCells.length} čl.</div>
         </div>
         <div class="mini-stat">
           <div class="lbl">Rozdíl ve věži (Δ)</div>
-          <div class="val">${pileDiffMv} mV (${(pileMinMv / 1000).toFixed(3)}–${(pileMaxMv / 1000).toFixed(3)} V)</div>
+          <div class="val">${pileDiff} mV (${(pileMin / 1000).toFixed(3)}–${(pileMax / 1000).toFixed(3)} V)</div>
         </div>
       `;
+
+      const renderExtremeRows = (items, toneColor) => items.map((c, idx) => {
+        const isPlotted = state.customCells.some(x => x.pileIdx === state.selectedPileIdx && x.globalIdx === c.globalIdx);
+        const cellLabel = `#${c.globalIdx} (M${c.pileMod}/Č${c.cellInMod})`;
+        return `
+          <div class="extreme-row">
+            <div>
+              <div class="ex-main" style="color:${toneColor};">${idx + 1}. ${c.v.toFixed(3)} V (${c.mv} mV)</div>
+              <div class="ex-sub">Článek #${c.globalIdx} • Modul ${c.pileMod}, článek ${c.cellInMod} • Δ ${c.mv - pileMed >= 0 ? "+" : ""}${c.mv - pileMed} mV</div>
+            </div>
+            <div class="ex-actions">
+              <button type="button" class="btn-xs ${isPlotted ? "active" : ""}" data-plot-gidx="${c.globalIdx}" data-plot-lbl="${cellLabel}">
+                ${isPlotted ? "V grafu" : "+ Graf"}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      extremesEl.innerHTML = `
+        <div class="card">
+          <div class="kpi-label">3 nejvyšší články ve věži #${state.selectedPileIdx + 1}</div>
+          <div class="extreme-list">${renderExtremeRows(top3High, "var(--amber)")}</div>
+        </div>
+        <div class="card">
+          <div class="kpi-label">3 nejnižší články ve věži #${state.selectedPileIdx + 1}</div>
+          <div class="extreme-list">${renderExtremeRows(top3Low, "var(--accent)")}</div>
+        </div>
+      `;
+
+      extremesEl.querySelectorAll("button[data-plot-gidx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          toggleCustomCell(state.selectedPileIdx, Number(btn.dataset.plotGidx), btn.dataset.plotLbl);
+        });
+      });
 
       let globalCellCounter = 0;
       gridEl.innerHTML = mods.map((m, mIdx) => {
@@ -929,15 +1282,22 @@
           const mv = typeof c === "number" ? c : c?.mv;
           const temp = (typeof c === "object" && c?.t != null) ? `${Number(c.t).toFixed(1)}°` : "";
           const gIdx = globalCellCounter++;
-          const delta = mv - pileMedMv;
+          const delta = mv - pileMed;
+
+          if (state.cellFilter === "diff15" && Math.abs(delta) < 15) return "";
+          if (state.cellFilter === "extremes" && !extremeSet.has(gIdx)) return "";
+
+          const isPlotted = state.customCells.some(x => x.pileIdx === state.selectedPileIdx && x.globalIdx === gIdx);
+          const cellLabel = `#${gIdx} (M${mIdx + 1}/Č${cIdx + 1})`;
 
           let cls = "cell-box";
-          if (mv === pileMaxMv && pileDiffMv > 2) cls += " is-max";
-          else if (mv === pileMinMv && pileDiffMv > 2) cls += " is-min";
+          if (mv === pileMax && pileDiff > 2) cls += " is-max";
+          else if (mv === pileMin && pileDiff > 2) cls += " is-min";
           else if (Math.abs(delta) >= 20) cls += " is-warn";
+          if (isPlotted) cls += " is-plotted";
 
           return `
-            <div class="${cls}" title="Globální kanál #${gIdx} | Modul ${mIdx + 1}, článek ${cIdx + 1}">
+            <div class="${cls}" data-gidx="${gIdx}" data-lbl="${cellLabel}" title="Kliknutím přidáš/odebereš z grafu | Globální #${gIdx} (Mod ${mIdx + 1}, čl. ${cIdx + 1})">
               <div class="c-id"><span>#${cIdx + 1}</span><span>${temp || ("ch" + gIdx)}</span></div>
               <div class="c-v">${(mv / 1000).toFixed(3)}</div>
               <div class="c-d">${delta >= 0 ? "+" : ""}${delta} mV</div>
@@ -955,12 +1315,19 @@
                 Δ ${modDiff} mV
               </div>
             </div>
-            <div class="cells-grid">${cellsHtml}</div>
+            <div class="cells-grid">${cellsHtml || `<div class="sub" style="color:var(--text-muted);font-size:0.8rem;">Žádný článek nevyhovuje filtru.</div>`}</div>
           </div>
         `;
       }).join("");
+
+      gridEl.querySelectorAll(".cell-box[data-gidx]").forEach(box => {
+        box.addEventListener("click", () => {
+          toggleCustomCell(state.selectedPileIdx, Number(box.dataset.gidx), box.dataset.lbl);
+        });
+      });
     }
 
+    // --- Ovládací prvky ---
     document.getElementById("deviceSelect").addEventListener("change", e => {
       state.selectedDevice = e.target.value;
       fetchTelemetry();
@@ -969,6 +1336,45 @@
     document.getElementById("rangeSelect").addEventListener("change", e => {
       state.rangeMinutes = Number(e.target.value);
       fetchTelemetry();
+    });
+
+    document.getElementById("cellFilterSelect").addEventListener("change", e => {
+      state.cellFilter = e.target.value;
+      const latest = state.latestRow || state.rows[state.rows.length - 1];
+      if (latest) renderPilesAndModules(latest);
+    });
+
+    document.getElementById("cellPickerSelect").addEventListener("change", e => {
+      if (!e.target.value) return;
+      const gIdx = Number(e.target.value);
+      const optText = e.target.options[e.target.selectedIndex].text;
+      const shortLbl = optText.split(" – ")[0];
+      e.target.value = "";
+      toggleCustomCell(state.selectedPileIdx, gIdx, shortLbl);
+    });
+
+    document.getElementById("toggleTop3MaxBtn").addEventListener("click", e => {
+      state.showTop3Max = !state.showTop3Max;
+      e.target.classList.toggle("active", state.showTop3Max);
+      renderChart();
+    });
+
+    document.getElementById("toggleTop3MinBtn").addEventListener("click", e => {
+      state.showTop3Min = !state.showTop3Min;
+      e.target.classList.toggle("active", state.showTop3Min);
+      renderChart();
+    });
+
+    document.getElementById("clearCellsBtn").addEventListener("click", () => {
+      state.customCells = [];
+      state.showTop3Max = false;
+      state.showTop3Min = false;
+      document.getElementById("toggleTop3MaxBtn").classList.remove("active");
+      document.getElementById("toggleTop3MinBtn").classList.remove("active");
+      renderSelectedCellChips();
+      renderChart();
+      const latest = state.latestRow || state.rows[state.rows.length - 1];
+      if (latest) renderPilesAndModules(latest);
     });
 
     document.getElementById("refreshBtn").addEventListener("click", () => {
