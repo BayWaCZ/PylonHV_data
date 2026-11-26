@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="cs" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pylontech HV Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --green: #16a34a;
+      --green-soft: rgba(22, 163, 74, 0.14);
+      --amber: #d97706;
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --red: #dc2626;
+      --red-soft: rgba(220, 38, 38, 0.14);
+      --cyan: #0891b2;
+      --shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+      --radius: 14px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b0f17;
+      --surface: #121826;
+      --surface-2: #182032;
+      --border: #243047;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.16);
+      --green: #22c55e;
+      --green-soft: rgba(34, 197, 94, 0.16);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.16);
+      --red: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.16);
+      --cyan: #06b6d4;
+      --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      transition: background 0.2s ease, color 0.2s ease;
+      padding-bottom: 40px;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+      padding: 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px var(--green-soft);
+    }
+
+    .status-dot.offline {
+      background: var(--red);
+      box-shadow: 0 0 0 4px var(--red-soft);
+    }
+
+    .brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .brand .sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    select, button {
+      font: inherit;
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover, select:hover {
+      border-color: var(--accent);
+    }
+
+    button.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .error-banner {
+      display: none;
+      margin-bottom: 18px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: var(--red-soft);
+      border: 1px solid var(--red);
+      color: var(--red);
+      font-size: 0.9rem;
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 24px 0 12px;
+    }
+
+    .section-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-sub {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-green { background: var(--green-soft); color: var(--green); }
+    .badge-amber { background: var(--amber-soft); color: var(--amber); }
+    .badge-red { background: var(--red-soft); color: var(--red); }
+    .badge-blue { background: var(--accent-soft); color: var(--accent); }
+
+    .chart-card {
+      margin-top: 18px;
+    }
+
+    .chart-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chip.on {
+      color: var(--text);
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .chip-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 340px;
+      width: 100%;
+    }
+
+    .pile-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pile-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mini-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .mini-stat .lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .mini-stat .val {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 16px;
+    }
+
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .module-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .module-title {
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+
+    .module-meta {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cells-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+      gap: 6px;
+    }
+
+    .cell-box {
+      padding: 6px 7px;
+      border-radius: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+      transition: transform 0.1s ease;
+    }
+
+    .cell-box:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    .cell-box .c-id {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .cell-box .c-v {
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .cell-box .c-d {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .cell-box.is-max {
+      background: var(--amber-soft);
+      border-color: var(--amber);
+    }
+
+    .cell-box.is-min {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .cell-box.is-warn {
+      background: var(--red-soft);
+      border-color: var(--red);
+    }
+
+    @media (max-width: 640px) {
+      .modules-grid {
+        grid-template-columns: 1fr;
+      }
+      .chart-wrap {
+        height: 270px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div id="statusDot" class="status-dot"></div>
+        <div>
+          <h1>Pylontech HV Úložiště</h1>
+          <div id="lastUpdate" class="sub">Načítám data ze Supabase…</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <select id="deviceSelect" title="Výběr zařízení"></select>
+
+        <select id="rangeSelect" title="Časový rozsah grafu">
+          <option value="60">Poslední 1 hodina (raw ~10s)</option>
+          <option value="360" selected>Posledních 6 hodin (raw ~10s)</option>
+          <option value="1440">Posledních 24 hodin (1 min)</option>
+          <option value="4320">Poslední 3 dny (5 min)</option>
+        </select>
+
+        <button id="autoBtn" class="active" title="Automatické obnovování každých 10 s">Auto 10s: ZAP</button>
+        <button id="refreshBtn" title="Obnovit ihned">Obnovit</button>
+        <button id="themeBtn" title="Přepnout světlý / tmavý režim">Světlý režim</button>
+      </div>
+    </header>
+
+    <div id="errorBanner" class="error-banner"></div>
+
+    <div class="section-header" style="margin-top: 0;">
+      <div class="section-title">Přehled celého úložiště a extrémy článků</div>
+      <div id="systemBadges"></div>
+    </div>
+
+    <div class="kpi-grid" id="storageKpis"></div>
+
+    <div class="card chart-card">
+      <div class="chart-toolbar">
+        <div>
+          <div class="section-title">Vývoj napětí článků a systémových veličin</div>
+          <div class="sub" style="font-size: 0.8rem; color: var(--text-muted);">
+            Kliknutím na štítky zapneš nebo vypneš další křivky v grafu
+          </div>
+        </div>
+        <div class="toggles" id="seriesToggles"></div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="telemetryChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Detail věží, modulů a jednotlivých článků</div>
+      <div class="pile-tabs" id="pileTabs"></div>
+    </div>
+
+    <div class="pile-overview" id="pileOverview"></div>
+    <div class="modules-grid" id="modulesGrid"></div>
+  </div>
+
+  <script>
+    // ================== KONFIGURACE SUPABASE ==================
+    const SUPABASE_URL = "https://ltjfmyiorrmrdwzrdfmc.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_zvMlarUPNX4u9SrBeSE97g_Pu_oUk4Y";
+    const TABLE_NAME = "pylontech_hv_telemetry";
+    const RPC_NAME = "get_pylontech_telemetry_sampled";
+    // ==========================================================
+
+    const state = {
+      rows: [],
+      latestRow: null,
+      selectedDevice: null,
+      selectedPileIdx: 0,
+      rangeMinutes: 360,
+      autoRefresh: true,
+      timerId: null,
+      chart: null,
+      seriesConfig: [
+        { key: "cellMax",   label: "Max článek (V)",     color: "#f59e0b", yAxisID: "yCell", enabled: true },
+        { key: "cellMin",   label: "Min článek (V)",     color: "#3b82f6", yAxisID: "yCell", enabled: true },
+        { key: "cellDiff",  label: "Rozdíl Δ (mV)",      color: "#ef4444", yAxisID: "yDiff", enabled: true },
+        { key: "totalV",    label: "Celkové napětí (V)", color: "#10b981", yAxisID: "ySys",  enabled: false },
+        { key: "currentA",  label: "Proud (A)",          color: "#06b6d4", yAxisID: "ySys",  enabled: false },
+        { key: "powerKw",   label: "Výkon (kW)",         color: "#8b5cf6", yAxisID: "ySys",  enabled: false },
+        { key: "soc",       label: "SOC (%)",            color: "#22c55e", yAxisID: "yPct",  enabled: false },
+        { key: "tempMax",   label: "Max teplota (°C)",   color: "#f97316", yAxisID: "yTemp", enabled: false },
+        { key: "tempMin",   label: "Min teplota (°C)",   color: "#38bdf8", yAxisID: "yTemp", enabled: false }
+      ]
+    };
+
+    function initTheme() {
+      const saved = localStorage.getItem("pylon_theme");
+      const theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      applyTheme(theme);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("pylon_theme", theme);
+      document.getElementById("themeBtn").textContent = theme === "dark" ? "Světlý režim" : "Tmavý režim";
+      if (state.chart) renderChart();
+    }
+
+    document.getElementById("themeBtn").addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme");
+      applyTheme(current === "dark" ? "light" : "dark");
+    });
+
+    async function fetchTelemetry() {
+      const errEl = document.getElementById("errorBanner");
+      const dotEl = document.getElementById("statusDot");
+
+      if (SUPABASE_URL.includes("TVUJ_PROJEKT") || SUPABASE_ANON_KEY.includes("TVUJ_SUPABASE")) {
+        showError("Vyplň prosím SUPABASE_URL a SUPABASE_ANON_KEY přímo v souboru index.html.");
+        return;
+      }
+
+      try {
+        const headers = {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
+        };
+
+        let latestUrl = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?select=*&order=recorded_at.desc&limit=1`;
+        if (state.selectedDevice) {
+          latestUrl += `&device_id=eq.${encodeURIComponent(state.selectedDevice)}`;
+        }
+
+        const rpcUrl = `${SUPABASE_URL}/rest/v1/rpc/${RPC_NAME}`;
+        const rpcBody = {
+          p_device_id: state.selectedDevice || null,
+          p_minutes: state.rangeMinutes
+        };
+
+        const [latestRes, seriesRes] = await Promise.all([
+          fetch(latestUrl, { headers }),
+          fetch(rpcUrl, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(rpcBody)
+          })
+        ]);
+
+        if (!latestRes.ok) {
+          const text = await latestRes.text();
+          throw new Error(`Latest HTTP ${latestRes.status}: ${text}`);
+        }
+        if (!seriesRes.ok) {
+          const text = await seriesRes.text();
+          throw new Error(`RPC HTTP ${seriesRes.status}: ${text}`);
+        }
+
+        const latestArr = await latestRes.json();
+        const seriesArr = await seriesRes.json();
+
+        errEl.style.display = "none";
+        dotEl.classList.remove("offline");
+
+        state.latestRow = latestArr[0] || null;
+        state.rows = Array.isArray(seriesArr) ? seriesArr : [];
+
+        if (state.latestRow?.device_id) {
+          updateDeviceSelector([state.latestRow]);
+        }
+        renderAll();
+      } catch (err) {
+        dotEl.classList.add("offline");
+        showError("Chyba při načítání dat ze Supabase: " + err.message);
+      }
+    }
+
+    function showError(msg) {
+      const errEl = document.getElementById("errorBanner");
+      errEl.textContent = msg;
+      errEl.style.display = "block";
+    }
+
+    function updateDeviceSelector(rows) {
+      const sel = document.getElementById("deviceSelect");
+      const devices = [...new Set(rows.map(r => r.device_id).filter(Boolean))];
+      if (devices.length === 0) return;
+
+      if (!state.selectedDevice) {
+        state.selectedDevice = devices[0];
+      }
+
+      const existing = new Set([...sel.options].map(o => o.value));
+      devices.forEach(d => {
+        if (!existing.has(d)) {
+          const opt = document.createElement("option");
+          opt.value = d;
+          opt.textContent = d;
+          sel.appendChild(opt);
+        }
+      });
+      sel.value = state.selectedDevice;
+    }
+
+    function locateCellInPiles(piles, globalCellIdx) {
+      if (!Array.isArray(piles) || globalCellIdx == null) return null;
+      for (let p = 0; p < piles.length; p++) {
+        const mods = piles[p].mods || [];
+        let acc = 0;
+        for (let m = 0; m < mods.length; m++) {
+          const len = (mods[m].cells || []).length;
+          if (globalCellIdx >= acc && globalCellIdx < acc + len) {
+            return {
+              pile: p + 1,
+              module: m + 1,
+              cellInMod: (globalCellIdx - acc) + 1
+            };
+          }
+          acc += len;
+        }
+      }
+      return null;
+    }
+
+    function formatCellLocation(piles, ch) {
+      if (ch == null) return "—";
+      const loc = locateCellInPiles(piles, ch);
+      if (!loc) return `kanál #${ch}`;
+      return `kanál #${ch} (Věž ${loc.pile}, Mod ${loc.module}, čl. ${loc.cellInMod})`;
+    }
+
+    function getSamplingLabel(minutes) {
+      if (minutes <= 360) return "raw (~10 s)";
+      if (minutes <= 1440) return "vzorkováno 1 min";
+      return "vzorkováno 5 min";
+    }
+
+    function renderAll() {
+      const latest = state.latestRow || state.rows[state.rows.length - 1];
+      if (!latest) {
+        document.getElementById("lastUpdate").textContent = "Zatím žádná data v databázi.";
+        return;
+      }
+
+      const dt = new Date(latest.recorded_at);
+      const ageSec = Math.max(0, Math.round((Date.now() - dt.getTime()) / 1000));
+      document.getElementById("lastUpdate").textContent =
+        `Poslední záznam: ${dt.toLocaleString("cs-CZ")} (před ${ageSec} s) • Bodů v grafu: ${state.rows.length} (${getSamplingLabel(state.rangeMinutes)})`;
+
+      renderStorageKpis(latest);
+      renderChart();
+      renderPilesAndModules(latest);
+    }
+
+    function renderStorageKpis(r) {
+      const diffMv = (r.cell_max_voltage_v != null && r.cell_min_voltage_v != null)
+        ? Math.round((r.cell_max_voltage_v - r.cell_min_voltage_v) * 1000)
+        : null;
+
+      let diffBadgeClass = "badge-green";
+      let diffText = "Vyrovnané";
+      if (diffMv != null) {
+        if (diffMv >= 80) { diffBadgeClass = "badge-red"; diffText = "Velký rozdíl"; }
+        else if (diffMv >= 30) { diffBadgeClass = "badge-amber"; diffText = "Mírná odchylka"; }
+      }
+
+      const cur = Number(r.current_a || 0);
+      const pwr = Number(r.power_kw || 0);
+      let stateBadge = `<span class="badge badge-blue">Klidový stav</span>`;
+      if (cur > 0.25) stateBadge = `<span class="badge badge-green">Nabíjení (+${pwr.toFixed(2)} kW)</span>`;
+      else if (cur < -0.25) stateBadge = `<span class="badge badge-amber">Vybíjení (${pwr.toFixed(2)} kW)</span>`;
+
+      const errOk = (!r.err_code_1 && !r.err_code_2);
+      const errBadge = errOk
+        ? `<span class="badge badge-green">Bez chyb</span>`
+        : `<span class="badge badge-red">Chyba: 0x${Number(r.err_code_1).toString(16).toUpperCase()} / 0x${Number(r.err_code_2).toString(16).toUpperCase()}</span>`;
+
+      document.getElementById("systemBadges").innerHTML = `${stateBadge} ${errBadge}`;
+
+      const maxLoc = formatCellLocation(r.piles, r.cell_max_v_ch);
+      const minLoc = formatCellLocation(r.piles, r.cell_min_v_ch);
+      const remKwh = r.remain_capacity_wh != null ? (r.remain_capacity_wh / 1000).toFixed(2) : "—";
+
+      document.getElementById("storageKpis").innerHTML = `
+        <div class="card">
+          <div class="kpi-label">Celkové napětí a proud</div>
+          <div class="kpi-value">${Number(r.total_voltage_v).toFixed(1)} V</div>
+          <div class="kpi-sub">Proud: <strong>${cur >= 0 ? "+" : ""}${cur.toFixed(2)} A</strong> • Výkon: <strong>${pwr.toFixed(2)} kW</strong></div>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">SOC / SOH / SOE</div>
+          <div class="kpi-value">${r.soc_pct ?? "—"} % <span style="font-size:1rem;color:var(--text-muted);font-weight:500;">(SOH ${r.soh_pct ?? "—"}%)</span></div>
+          <div class="kpi-sub">Zbývá: <strong>${remKwh} kWh</strong> • Cykly: <strong>${r.cycles ?? "—"}</strong></div>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">Největší rozdíl článků (Δ)</div>
+          <div class="kpi-value">${diffMv != null ? diffMv + " mV" : "—"} <span class="badge ${diffBadgeClass}">${diffText}</span></div>
+          <div class="kpi-sub">Rozpětí ${Number(r.cell_min_voltage_v).toFixed(3)} – ${Number(r.cell_max_voltage_v).toFixed(3)} V</div>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">Max napětí článku</div>
+          <div class="kpi-value" style="color:var(--amber);">${Number(r.cell_max_voltage_v).toFixed(3)} V</div>
+          <div class="kpi-sub">${maxLoc}</div>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">Min napětí článku</div>
+          <div class="kpi-value" style="color:var(--accent);">${Number(r.cell_min_voltage_v).toFixed(3)} V</div>
+          <div class="kpi-sub">${minLoc}</div>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">Teploty článků & historie</div>
+          <div class="kpi-value">${Number(r.cell_min_temp_c).toFixed(1)} – ${Number(r.cell_max_temp_c).toFixed(1)} °C</div>
+          <div class="kpi-sub">Nabití: ${r.hist_charge_kwh ?? 0} kWh • Vybití: ${r.hist_discharge_kwh ?? 0} kWh</div>
+        </div>
+      `;
+    }
+
+    function renderSeriesToggles() {
+      const container = document.getElementById("seriesToggles");
+      container.innerHTML = state.seriesConfig.map((s, idx) => `
+        <div class="chip ${s.enabled ? "on" : ""}" data-idx="${idx}">
+          <span class="chip-dot" style="background:${s.color};"></span>
+          ${s.label}
+        </div>
+      `).join("");
+
+      container.querySelectorAll(".chip").forEach(el => {
+        el.addEventListener("click", () => {
+          const i = Number(el.dataset.idx);
+          state.seriesConfig[i].enabled = !state.seriesConfig[i].enabled;
+          renderSeriesToggles();
+          renderChart();
+        });
+      });
+    }
+
+    function renderChart() {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      const gridColor = isDark ? "rgba(148, 163, 184, 0.12)" : "rgba(15, 23, 42, 0.08)";
+      const tickColor = isDark ? "#94a3b8" : "#64748b";
+
+      const showDate = state.rangeMinutes > 720;
+      const labels = state.rows.map(r => {
+        const d = new Date(r.recorded_at);
+        return showDate
+          ? d.toLocaleString("cs-CZ", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+          : d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      });
+
+      const extractors = {
+        cellMax:  r => r.cell_max_voltage_v,
+        cellMin:  r => r.cell_min_voltage_v,
+        cellDiff: r => (r.cell_max_voltage_v != null && r.cell_min_voltage_v != null)
+                       ? Math.round((r.cell_max_voltage_v - r.cell_min_voltage_v) * 1000) : null,
+        totalV:   r => r.total_voltage_v,
+        currentA: r => r.current_a,
+        powerKw:  r => r.power_kw,
+        soc:      r => r.soc_pct,
+        tempMax:  r => r.cell_max_temp_c,
+        tempMin:  r => r.cell_min_temp_c
+      };
+
+      const activeSeries = state.seriesConfig.filter(s => s.enabled);
+      const datasets = activeSeries.map(s => ({
+        label: s.label,
+        data: state.rows.map(extractors[s.key]),
+        borderColor: s.color,
+        backgroundColor: s.color + "22",
+        borderWidth: 2,
+        pointRadius: state.rows.length > 180 ? 0 : 2,
+        pointHoverRadius: 4,
+        tension: 0.2,
+        yAxisID: s.yAxisID
+      }));
+
+      const hasAxis = id => activeSeries.some(s => s.yAxisID === id);
+
+      const ctx = document.getElementById("telemetryChart").getContext("2d");
+      if (state.chart) {
+        state.chart.destroy();
+      }
+
+      state.chart = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? "#1e293b" : "#0f172a",
+              titleColor: "#f8fafc",
+              bodyColor: "#e2e8f0",
+              padding: 10,
+              cornerRadius: 8
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: gridColor },
+              ticks: { color: tickColor, maxTicksLimit: 10 }
+            },
+            yCell: {
+              type: "linear",
+              position: "left",
+              display: hasAxis("yCell"),
+              grid: { color: gridColor },
+              ticks: { color: tickColor, callback: v => Number(v).toFixed(3) + " V" },
+              title: { display: true, text: "Napětí článku (V)", color: tickColor }
+            },
+            yDiff: {
+              type: "linear",
+              position: "right",
+              display: hasAxis("yDiff"),
+              beginAtZero: true,
+              grid: { drawOnChartArea: false },
+              ticks: { color: "#ef4444", callback: v => v + " mV" },
+              title: { display: true, text: "Rozdíl Δ (mV)", color: "#ef4444" }
+            },
+            ySys: {
+              type: "linear",
+              position: "right",
+              display: hasAxis("ySys"),
+              grid: { drawOnChartArea: false },
+              ticks: { color: tickColor }
+            },
+            yPct: {
+              type: "linear",
+              position: "right",
+              display: hasAxis("yPct"),
+              min: 0,
+              max: 100,
+              grid: { drawOnChartArea: false },
+              ticks: { color: tickColor, callback: v => v + "%" }
+            },
+            yTemp: {
+              type: "linear",
+              position: "right",
+              display: hasAxis("yTemp"),
+              grid: { drawOnChartArea: false },
+              ticks: { color: tickColor, callback: v => v + " °C" }
+            }
+          }
+        }
+      });
+    }
+
+    function renderPilesAndModules(latest) {
+      const piles = Array.isArray(latest.piles) ? latest.piles : [];
+      const tabsEl = document.getElementById("pileTabs");
+      const overviewEl = document.getElementById("pileOverview");
+      const gridEl = document.getElementById("modulesGrid");
+
+      if (piles.length === 0) {
+        tabsEl.innerHTML = "";
+        overviewEl.innerHTML = "";
+        gridEl.innerHTML = `<div class="card">V poli <code>piles</code> zatím nejsou žádná data věží.</div>`;
+        return;
+      }
+
+      if (state.selectedPileIdx >= piles.length) {
+        state.selectedPileIdx = 0;
+      }
+
+      tabsEl.innerHTML = piles.map((p, idx) => `
+        <button class="${idx === state.selectedPileIdx ? "active" : ""}" data-pile="${idx}">
+          Věž #${idx + 1} (${Number(p.v).toFixed(1)} V • ${p.soc}%)
+        </button>
+      `).join("");
+
+      tabsEl.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedPileIdx = Number(btn.dataset.pile);
+          renderPilesAndModules(latest);
+        });
+      });
+
+      const pile = piles[state.selectedPileIdx];
+      const mods = Array.isArray(pile.mods) ? pile.mods : [];
+
+      const allMv = [];
+      mods.forEach(m => {
+        (m.cells || []).forEach(c => {
+          const mv = typeof c === "number" ? c : c?.mv;
+          if (mv != null) allMv.push(mv);
+        });
+      });
+
+      const sortedMv = [...allMv].sort((a, b) => a - b);
+      const pileMinMv = sortedMv.length ? sortedMv[0] : 0;
+      const pileMaxMv = sortedMv.length ? sortedMv[sortedMv.length - 1] : 0;
+      const pileMedMv = sortedMv.length ? sortedMv[Math.floor(sortedMv.length / 2)] : 0;
+      const pileDiffMv = pileMaxMv - pileMinMv;
+
+      overviewEl.innerHTML = `
+        <div class="mini-stat">
+          <div class="lbl">Napětí věže #${state.selectedPileIdx + 1}</div>
+          <div class="val">${Number(pile.v).toFixed(1)} V</div>
+        </div>
+        <div class="mini-stat">
+          <div class="lbl">Proud věže</div>
+          <div class="val">${Number(pile.i) >= 0 ? "+" : ""}${Number(pile.i).toFixed(2)} A</div>
+        </div>
+        <div class="mini-stat">
+          <div class="lbl">SOC / SOH / Teplota</div>
+          <div class="val">${pile.soc}% / ${pile.soh}% • ${Number(pile.t).toFixed(1)} °C</div>
+        </div>
+        <div class="mini-stat">
+          <div class="lbl">Moduly / Články</div>
+          <div class="val">${mods.length} mod / ${allMv.length} čl.</div>
+        </div>
+        <div class="mini-stat">
+          <div class="lbl">Rozdíl ve věži (Δ)</div>
+          <div class="val">${pileDiffMv} mV (${(pileMinMv / 1000).toFixed(3)}–${(pileMaxMv / 1000).toFixed(3)} V)</div>
+        </div>
+      `;
+
+      let globalCellCounter = 0;
+      gridEl.innerHTML = mods.map((m, mIdx) => {
+        const cells = Array.isArray(m.cells) ? m.cells : [];
+        const modMvs = cells.map(c => (typeof c === "number" ? c : c?.mv)).filter(v => v != null);
+        const modMin = modMvs.length ? Math.min(...modMvs) : 0;
+        const modMax = modMvs.length ? Math.max(...modMvs) : 0;
+        const modDiff = modMax - modMin;
+
+        const cellsHtml = cells.map((c, cIdx) => {
+          const mv = typeof c === "number" ? c : c?.mv;
+          const temp = (typeof c === "object" && c?.t != null) ? `${Number(c.t).toFixed(1)}°` : "";
+          const gIdx = globalCellCounter++;
+          const delta = mv - pileMedMv;
+
+          let cls = "cell-box";
+          if (mv === pileMaxMv && pileDiffMv > 2) cls += " is-max";
+          else if (mv === pileMinMv && pileDiffMv > 2) cls += " is-min";
+          else if (Math.abs(delta) >= 20) cls += " is-warn";
+
+          return `
+            <div class="${cls}" title="Globální kanál #${gIdx} | Modul ${mIdx + 1}, článek ${cIdx + 1}">
+              <div class="c-id"><span>#${cIdx + 1}</span><span>${temp || ("ch" + gIdx)}</span></div>
+              <div class="c-v">${(mv / 1000).toFixed(3)}</div>
+              <div class="c-d">${delta >= 0 ? "+" : ""}${delta} mV</div>
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <div class="module-card">
+            <div class="module-top">
+              <div class="module-title">Modul #${mIdx + 1}</div>
+              <div class="module-meta">
+                <strong>${m.v != null ? Number(m.v).toFixed(2) + " V" : "—"}</strong> •
+                ${m.t != null ? Number(m.t).toFixed(1) + " °C" : "—"} •
+                Δ ${modDiff} mV
+              </div>
+            </div>
+            <div class="cells-grid">${cellsHtml}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    document.getElementById("deviceSelect").addEventListener("change", e => {
+      state.selectedDevice = e.target.value;
+      fetchTelemetry();
+    });
+
+    document.getElementById("rangeSelect").addEventListener("change", e => {
+      state.rangeMinutes = Number(e.target.value);
+      fetchTelemetry();
+    });
+
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      fetchTelemetry();
+    });
+
+    document.getElementById("autoBtn").addEventListener("click", e => {
+      state.autoRefresh = !state.autoRefresh;
+      e.target.classList.toggle("active", state.autoRefresh);
+      e.target.textContent = state.autoRefresh ? "Auto 10s: ZAP" : "Auto 10s: VYP";
+      setupTimer();
+    });
+
+    function setupTimer() {
+      if (state.timerId) clearInterval(state.timerId);
+      if (state.autoRefresh) {
+        state.timerId = setInterval(fetchTelemetry, 10000);
+      }
+    }
+
+    initTheme();
+    renderSeriesToggles();
+    fetchTelemetry();
+    setupTimer();
+  </script>
+</body>
+</html>
