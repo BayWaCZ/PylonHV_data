@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pylontech HV Monitor</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <style>
     :root {
       --bg: #f4f6f9;
@@ -72,7 +74,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 22px;
+      margin-bottom: 16px;
       padding: 16px 20px;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -117,7 +119,7 @@
       gap: 10px;
     }
 
-    select, button {
+    select, button, input[type="password"], input[type="text"] {
       font: inherit;
       font-size: 0.85rem;
       padding: 8px 12px;
@@ -125,18 +127,52 @@
       border: 1px solid var(--border);
       background: var(--surface-2);
       color: var(--text);
-      cursor: pointer;
       transition: all 0.15s ease;
     }
 
-    button:hover, select:hover {
+    select, button {
+      cursor: pointer;
+    }
+
+    button:hover, select:hover, input:focus {
       border-color: var(--accent);
+      outline: none;
     }
 
     button.active {
       background: var(--accent);
       color: #fff;
       border-color: var(--accent);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .nav-tab {
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .nav-tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
     }
 
     .error-banner {
@@ -167,7 +203,7 @@
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
       gap: 14px;
     }
 
@@ -179,6 +215,16 @@
       box-shadow: var(--shadow);
     }
 
+    .card.power-charge {
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px var(--green-soft), var(--shadow);
+    }
+
+    .card.power-discharge {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 1px var(--amber-soft), var(--shadow);
+    }
+
     .kpi-label {
       font-size: 0.78rem;
       text-transform: uppercase;
@@ -186,13 +232,21 @@
       color: var(--text-muted);
       margin-bottom: 6px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .kpi-value {
-      font-size: 1.6rem;
+      font-size: 1.65rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.02em;
+    }
+
+    .kpi-value.hero-power {
+      font-size: 2rem;
     }
 
     .kpi-sub {
@@ -221,21 +275,16 @@
       font-size: 0.84rem;
     }
 
-    .limit-item .l-name {
-      color: var(--text-muted);
-    }
-
-    .limit-item .l-val {
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
+    .limit-item .l-name { color: var(--text-muted); }
+    .limit-item .l-val { font-weight: 700; font-variant-numeric: tabular-nums; }
 
     .badge {
       display: inline-block;
       padding: 2px 8px;
       border-radius: 999px;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0.02em;
     }
 
     .badge-green { background: var(--green-soft); color: var(--green); }
@@ -243,9 +292,7 @@
     .badge-red { background: var(--red-soft); color: var(--red); }
     .badge-blue { background: var(--accent-soft); color: var(--accent); }
 
-    .chart-card {
-      margin-top: 18px;
-    }
+    .chart-card { margin-top: 18px; }
 
     .chart-toolbar {
       display: flex;
@@ -296,9 +343,7 @@
       line-height: 1;
     }
 
-    .cell-pill button:hover {
-      color: var(--red);
-    }
+    .cell-pill button:hover { color: var(--red); }
 
     .toggles {
       display: flex;
@@ -335,15 +380,11 @@
 
     .chart-wrap {
       position: relative;
-      height: 360px;
+      height: 370px;
       width: 100%;
     }
 
-    .pile-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+    .pile-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
 
     .pile-overview {
       display: grid;
@@ -359,11 +400,7 @@
       padding: 12px 14px;
     }
 
-    .mini-stat .lbl {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
+    .mini-stat .lbl { font-size: 0.75rem; color: var(--text-muted); }
     .mini-stat .val {
       font-size: 1.15rem;
       font-weight: 700;
@@ -398,20 +435,9 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .extreme-row .ex-main {
-      font-weight: 700;
-    }
-
-    .extreme-row .ex-sub {
-      color: var(--text-muted);
-      font-size: 0.78rem;
-    }
-
-    .extreme-row .ex-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .extreme-row .ex-main { font-weight: 700; }
+    .extreme-row .ex-sub { color: var(--text-muted); font-size: 0.78rem; }
+    .extreme-row .ex-actions { display: flex; align-items: center; gap: 8px; }
 
     .btn-xs {
       padding: 4px 8px;
@@ -443,11 +469,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .module-title {
-      font-weight: 700;
-      font-size: 0.98rem;
-    }
-
+    .module-title { font-weight: 700; font-size: 0.98rem; }
     .module-meta {
       font-size: 0.82rem;
       color: var(--text-muted);
@@ -475,50 +497,71 @@
       border-color: var(--accent);
     }
 
-    .cell-box.is-plotted {
-      box-shadow: inset 0 0 0 2px var(--accent);
-    }
-
+    .cell-box.is-plotted { box-shadow: inset 0 0 0 2px var(--accent); }
     .cell-box .c-id {
       font-size: 0.68rem;
       color: var(--text-muted);
       display: flex;
       justify-content: space-between;
     }
+    .cell-box .c-v { font-size: 0.86rem; font-weight: 700; margin-top: 1px; }
+    .cell-box .c-d { font-size: 0.68rem; color: var(--text-muted); }
 
-    .cell-box .c-v {
-      font-size: 0.86rem;
-      font-weight: 700;
-      margin-top: 1px;
+    .cell-box.is-max { background: var(--amber-soft); border-color: var(--amber); }
+    .cell-box.is-min { background: var(--accent-soft); border-color: var(--accent); }
+    .cell-box.is-warn { background: var(--red-soft); border-color: var(--red); }
+
+    /* Analýza */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
     }
 
-    .cell-box .c-d {
-      font-size: 0.68rem;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
       color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
 
-    .cell-box.is-max {
-      background: var(--amber-soft);
-      border-color: var(--amber);
+    .ai-box {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+      line-height: 1.55;
     }
 
-    .cell-box.is-min {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-    }
-
-    .cell-box.is-warn {
-      background: var(--red-soft);
-      border-color: var(--red);
+    .ai-key-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
     }
 
     @media (max-width: 640px) {
-      .modules-grid {
-        grid-template-columns: 1fr;
-      }
-      .chart-wrap {
-        height: 280px;
-      }
+      .modules-grid, .analysis-grid { grid-template-columns: 1fr; }
+      .chart-wrap { height: 290px; }
+      .kpi-value.hero-power { font-size: 1.65rem; }
     }
   </style>
 </head>
@@ -551,59 +594,122 @@
 
     <div id="errorBanner" class="error-banner"></div>
 
-    <!-- Přehled úložiště + extrémy + limity BMS -->
-    <div class="section-header" style="margin-top: 0;">
-      <div class="section-title">Přehled celého úložiště a extrémy článků</div>
-      <div id="systemBadges"></div>
+    <div class="nav-tabs">
+      <button type="button" class="nav-tab active" data-tab="overview">Přehled a články</button>
+      <button type="button" class="nav-tab" data-tab="analysis">Analýza a AI diagnostika</button>
     </div>
 
-    <div class="kpi-grid" id="storageKpis"></div>
-    <div class="limits-bar" id="bmsLimitsBar"></div>
+    <!-- ZÁLOŽKA 1: PŘEHLED -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="section-header" style="margin-top: 0;">
+        <div class="section-title">Přehled celého úložiště a extrémy článků</div>
+        <div id="systemBadges"></div>
+      </div>
 
-    <!-- Graf -->
-    <div class="card chart-card">
-      <div class="chart-toolbar">
-        <div>
-          <div class="section-title">Vývoj napětí článků, extrémů a systémových veličin</div>
-          <div id="chartHint" class="sub" style="font-size: 0.8rem; color: var(--text-muted);">
-            Kliknutím na štítky zapneš křivky; vybrané články z aktuální věže se vykreslují u surových (raw) dat.
+      <div class="kpi-grid" id="storageKpis"></div>
+      <div class="limits-bar" id="bmsLimitsBar"></div>
+
+      <div class="card chart-card">
+        <div class="chart-toolbar">
+          <div>
+            <div class="section-title">Vývoj napětí článků, extrémů a systémových veličin</div>
+            <div id="chartHint" class="sub" style="font-size: 0.8rem; color: var(--text-muted);">
+              Kolečkem myši nebo tažením přibližuj a posouvej graf.
+            </div>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+            <button type="button" id="resetZoomBtn" class="btn-xs">Reset zoom</button>
+            <div class="toggles" id="seriesToggles"></div>
           </div>
         </div>
-        <div class="toggles" id="seriesToggles"></div>
+
+        <div class="cell-chart-controls">
+          <strong>Články v grafu:</strong>
+          <button type="button" id="toggleTop3MaxBtn" class="btn-xs">Top 3 max (věž)</button>
+          <button type="button" id="toggleTop3MinBtn" class="btn-xs">Top 3 min (věž)</button>
+          <select id="cellPickerSelect" title="Přidat konkrétní článek z vybrané věže">
+            <option value="">+ Přidat článek z věže…</option>
+          </select>
+          <button type="button" id="clearCellsBtn" class="btn-xs">Vymazat články</button>
+          <div id="selectedCellsChips" class="selected-cells-chips"></div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="telemetryChart"></canvas>
+        </div>
       </div>
 
-      <div class="cell-chart-controls">
-        <strong>Články v grafu:</strong>
-        <button id="toggleTop3MaxBtn" class="btn-xs">Top 3 max (věž)</button>
-        <button id="toggleTop3MinBtn" class="btn-xs">Top 3 min (věž)</button>
-        <select id="cellPickerSelect" title="Přidat konkrétní článek z vybrané věže">
-          <option value="">+ Přidat článek z věže…</option>
-        </select>
-        <button id="clearCellsBtn" class="btn-xs">Vymazat články</button>
-        <div id="selectedCellsChips" class="selected-cells-chips"></div>
+      <div class="section-header">
+        <div class="section-title">Detail věží, extrémních článků a modulů</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+          <select id="cellFilterSelect" title="Filtr článků v modulech">
+            <option value="all">Všechny články</option>
+            <option value="diff15">Odchylka ≥ 15 mV</option>
+            <option value="extremes">Top 3 min & max věže</option>
+          </select>
+          <div class="pile-tabs" id="pileTabs"></div>
+        </div>
       </div>
 
-      <div class="chart-wrap">
-        <canvas id="telemetryChart"></canvas>
-      </div>
+      <div class="pile-overview" id="pileOverview"></div>
+      <div class="extremes-grid" id="pileExtremes"></div>
+      <div class="modules-grid" id="modulesGrid"></div>
     </div>
 
-    <!-- Věže -> Top 3 min/max -> Moduly -> Články -->
-    <div class="section-header">
-      <div class="section-title">Detail věží, extrémních článků a modulů</div>
-      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-        <select id="cellFilterSelect" title="Filtr článků v modulech">
-          <option value="all">Všechny články</option>
-          <option value="diff15">Odchylka ≥ 15 mV</option>
-          <option value="extremes">Top 3 min & max věže</option>
-        </select>
-        <div class="pile-tabs" id="pileTabs"></div>
+    <!-- ZÁLOŽKA 2: ANALÝZA -->
+    <div id="tab-analysis" class="tab-panel">
+      <div class="section-header" style="margin-top: 0;">
+        <div class="section-title">Rozdíly článků (ΔmV) podle režimu a nejčastější extrémy</div>
+        <span class="badge badge-blue" id="analysisWindowBadge">Časové okno</span>
+      </div>
+
+      <div class="analysis-grid">
+        <div class="card">
+          <div class="kpi-label">ΔmV článků podle provozního režimu</div>
+          <div id="modeDeltaTable"></div>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">Porovnání věží (aktuální snímek)</div>
+          <div id="pilesComparisonTable"></div>
+        </div>
+      </div>
+
+      <div class="analysis-grid">
+        <div class="card">
+          <div class="kpi-label">Nejčastější maximální články (v načteném okně)</div>
+          <div id="topMaxCulpritsTable"></div>
+        </div>
+
+        <div class="card">
+          <div class="kpi-label">Nejčastější minimální články (v načteném okně)</div>
+          <div id="topMinCulpritsTable"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="kpi-label">Moduly seřazené podle největší odchylky článků (aktuální věž)</div>
+        <div id="modulesRankingTable"></div>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <div class="kpi-label">
+          <span>AI zhodnocení stavu článků a modulů + doporučení</span>
+          <span class="badge badge-green">Diagnostika</span>
+        </div>
+        <p class="sub" style="font-size: 0.84rem; color: var(--text-muted);">
+          Vyhodnotí aktuální rozdíly článků, moduly s největší odchylkou, nejčastější extrémní články a chování v režimech nabíjení/vybíjení/klidu. Můžeš spustit rychlé lokální doporučení nebo poslat souhrn do Gemini API.
+        </p>
+
+        <div class="ai-key-row">
+          <button type="button" id="runLocalDiagBtn">Lokální doporučení</button>
+          <input type="password" id="geminiKeyInput" placeholder="Gemini API klíč (volitelné, uloží se lokálně)" style="min-width: 280px;" />
+          <button type="button" id="runAiDiagBtn" class="active">Vyhodnotit přes Gemini AI</button>
+        </div>
+
+        <div id="aiDiagnosisOutput" class="ai-box">Klikni na „Lokální doporučení“ nebo zadej Gemini API klíč a klikni na „Vyhodnotit přes Gemini AI“.</div>
       </div>
     </div>
-
-    <div class="pile-overview" id="pileOverview"></div>
-    <div class="extremes-grid" id="pileExtremes"></div>
-    <div class="modules-grid" id="modulesGrid"></div>
   </div>
 
   <script>
@@ -612,7 +718,12 @@
     const SUPABASE_ANON_KEY = "sb_publishable_zvMlarUPNX4u9SrBeSE97g_Pu_oUk4Y";
     const TABLE_NAME = "pylontech_hv_telemetry";
     const RPC_NAME = "get_pylontech_telemetry_sampled";
+    const GEMINI_MODEL = "gemini-2.5-flash";
     // ==========================================================
+
+    if (window.ChartZoom) {
+      Chart.register(window.ChartZoom);
+    }
 
     const CELL_PALETTE = [
       "#ec4899", "#14b8a6", "#a855f7", "#eab308",
@@ -626,12 +737,12 @@
       selectedPileIdx: 0,
       rangeMinutes: 360,
       cellFilter: "all",
+      activeTab: "overview",
       autoRefresh: true,
       timerId: null,
       chart: null,
       showTop3Max: false,
       showTop3Min: false,
-      // Pole položek: { pileIdx, globalIdx, label }
       customCells: [],
       seriesConfig: [
         { key: "cellMax",   label: "Max článek (V)",     color: "#f59e0b", yAxisID: "yCell", enabled: true },
@@ -646,6 +757,22 @@
       ]
     };
 
+    // --- Přepínání záložek ---
+    document.querySelectorAll(".nav-tab").forEach(tabBtn => {
+      tabBtn.addEventListener("click", () => {
+        state.activeTab = tabBtn.dataset.tab;
+        document.querySelectorAll(".nav-tab").forEach(b => b.classList.toggle("active", b === tabBtn));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        document.getElementById(`tab-${state.activeTab}`).classList.add("active");
+        if (state.activeTab === "analysis") {
+          renderAnalysis();
+        } else if (state.chart) {
+          state.chart.resize();
+        }
+      });
+    });
+
+    // --- Téma ---
     function initTheme() {
       const saved = localStorage.getItem("pylon_theme");
       const theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
@@ -664,6 +791,14 @@
       applyTheme(current === "dark" ? "light" : "dark");
     });
 
+    // --- Gemini klíč v localStorage ---
+    const geminiInput = document.getElementById("geminiKeyInput");
+    geminiInput.value = localStorage.getItem("pylon_gemini_key") || "";
+    geminiInput.addEventListener("change", () => {
+      localStorage.setItem("pylon_gemini_key", geminiInput.value.trim());
+    });
+
+    // --- Načtení dat ze Supabase ---
     async function fetchTelemetry() {
       const errEl = document.getElementById("errorBanner");
       const dotEl = document.getElementById("statusDot");
@@ -822,6 +957,9 @@
       renderCellPicker(latest);
       renderSelectedCellChips();
       renderChart();
+      if (state.activeTab === "analysis") {
+        renderAnalysis();
+      }
     }
 
     function renderStorageKpis(r) {
@@ -838,26 +976,45 @@
 
       const cur = Number(r.current_a || 0);
       const pwr = Number(r.power_kw || 0);
-      let stateBadge = `<span class="badge badge-blue">Klidový stav</span>`;
-      if (cur > 0.25) stateBadge = `<span class="badge badge-green">Nabíjení (+${pwr.toFixed(2)} kW)</span>`;
-      else if (cur < -0.25) stateBadge = `<span class="badge badge-amber">Vybíjení (${pwr.toFixed(2)} kW)</span>`;
+
+      let flowLabel = "KLID";
+      let flowBadgeClass = "badge-blue";
+      let powerCardClass = "card";
+      let powerColor = "var(--text)";
+      let powerPrefix = "";
+
+      if (cur > 0.25) {
+        flowLabel = "NABÍJÍ";
+        flowBadgeClass = "badge-green";
+        powerCardClass = "card power-charge";
+        powerColor = "var(--green)";
+        powerPrefix = "+";
+      } else if (cur < -0.25) {
+        flowLabel = "VYBÍJÍ";
+        flowBadgeClass = "badge-amber";
+        powerCardClass = "card power-discharge";
+        powerColor = "var(--amber)";
+      }
 
       const errOk = (!r.err_code_1 && !r.err_code_2);
       const errBadge = errOk
         ? `<span class="badge badge-green">Bez chyb</span>`
         : `<span class="badge badge-red">Chyba: 0x${Number(r.err_code_1).toString(16).toUpperCase()} / 0x${Number(r.err_code_2).toString(16).toUpperCase()}</span>`;
 
-      document.getElementById("systemBadges").innerHTML = `${stateBadge} ${errBadge}`;
+      document.getElementById("systemBadges").innerHTML = `<span class="badge ${flowBadgeClass}">${flowLabel}</span> ${errBadge}`;
 
       const maxLoc = formatCellLocation(r.piles, r.cell_max_v_ch);
       const minLoc = formatCellLocation(r.piles, r.cell_min_v_ch);
       const remKwh = r.remain_capacity_wh != null ? (r.remain_capacity_wh / 1000).toFixed(2) : "—";
 
       document.getElementById("storageKpis").innerHTML = `
-        <div class="card">
-          <div class="kpi-label">Celkové napětí a proud</div>
-          <div class="kpi-value">${Number(r.total_voltage_v).toFixed(1)} V</div>
-          <div class="kpi-sub">Proud: <strong>${cur >= 0 ? "+" : ""}${cur.toFixed(2)} A</strong> • Výkon: <strong>${pwr.toFixed(2)} kW</strong></div>
+        <div class="${powerCardClass}">
+          <div class="kpi-label">
+            <span>Aktuální výkon</span>
+            <span class="badge ${flowBadgeClass}">${flowLabel}</span>
+          </div>
+          <div class="kpi-value hero-power" style="color:${powerColor};">${powerPrefix}${pwr.toFixed(2)} kW</div>
+          <div class="kpi-sub"><strong>${Number(r.total_voltage_v).toFixed(1)} V</strong> • Proud: <strong>${cur >= 0 ? "+" : ""}${cur.toFixed(2)} A</strong></div>
         </div>
 
         <div class="card">
@@ -916,7 +1073,6 @@
       `;
     }
 
-    // --- Výběr konkrétních článků do grafu ---
     function toggleCustomCell(pileIdx, globalIdx, label) {
       const existsIdx = state.customCells.findIndex(c => c.pileIdx === pileIdx && c.globalIdx === globalIdx);
       if (existsIdx >= 0) {
@@ -961,7 +1117,6 @@
       });
     }
 
-    // --- Přepínače sérií a Chart.js ---
     function renderSeriesToggles() {
       const container = document.getElementById("seriesToggles");
       container.innerHTML = state.seriesConfig.map((s, idx) => `
@@ -1032,7 +1187,6 @@
         });
       });
 
-      // Top 3 max / Top 3 min články z aktuální věže
       const latest = state.latestRow || state.rows[state.rows.length - 1];
       const latestPile = latest?.piles?.[state.selectedPileIdx];
       const sortedCells = flattenPileCells(latestPile).sort((a, b) => a.mv - b.mv);
@@ -1044,7 +1198,7 @@
       if ((state.showTop3Max || state.showTop3Min || state.customCells.length > 0) && !hasRawCellData) {
         hintEl.textContent = "U zvoleného delšího rozsahu nejsou v agregovaných bodech uloženy jednotlivé články – přepni na 1 h nebo 6 h pro křivky článků.";
       } else {
-        hintEl.textContent = "Kliknutím na štítky zapneš křivky; kliknutím na článek v přehledu nebo v liště přidáš jeho křivku do grafu.";
+        hintEl.textContent = "Kolečkem myši přibližuj, tažením posouvej; kliknutím na článek přidáš jeho křivku do grafu.";
       }
 
       if (state.showTop3Max) {
@@ -1115,6 +1269,17 @@
               bodyColor: "#e2e8f0",
               padding: 10,
               cornerRadius: 8
+            },
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: "x"
+              },
+              zoom: {
+                wheel: { enabled: true },
+                pinch: { enabled: true },
+                mode: "x"
+              }
             }
           },
           scales: {
@@ -1167,7 +1332,12 @@
       });
     }
 
-    // --- Věže, Top 3 min/max, moduly a články ---
+    document.getElementById("resetZoomBtn").addEventListener("click", () => {
+      if (state.chart && typeof state.chart.resetZoom === "function") {
+        state.chart.resetZoom();
+      }
+    });
+
     function renderPilesAndModules(latest) {
       const piles = Array.isArray(latest.piles) ? latest.piles : [];
       const tabsEl = document.getElementById("pileTabs");
@@ -1326,6 +1496,286 @@
         });
       });
     }
+
+    // --- ANALÝZA ---
+    function computeAnalysisData() {
+      const latest = state.latestRow || state.rows[state.rows.length - 1];
+      const modes = {
+        charge: { label: "Nabíjení (> 0,25 A)", diffs: [] },
+        discharge: { label: "Vybíjení (< -0,25 A)", diffs: [] },
+        idle: { label: "Klid (-0,25 až +0,25 A)", diffs: [] }
+      };
+
+      const maxCounts = new Map();
+      const minCounts = new Map();
+
+      state.rows.forEach(r => {
+        const diff = (r.cell_max_voltage_v != null && r.cell_min_voltage_v != null)
+          ? Math.round((r.cell_max_voltage_v - r.cell_min_voltage_v) * 1000)
+          : null;
+        const cur = Number(r.current_a || 0);
+
+        if (diff != null) {
+          if (cur > 0.25) modes.charge.diffs.push(diff);
+          else if (cur < -0.25) modes.discharge.diffs.push(diff);
+          else modes.idle.diffs.push(diff);
+        }
+
+        if (r.cell_max_v_ch != null) {
+          const k = Number(r.cell_max_v_ch);
+          maxCounts.set(k, (maxCounts.get(k) || 0) + 1);
+        }
+        if (r.cell_min_v_ch != null) {
+          const k = Number(r.cell_min_v_ch);
+          minCounts.set(k, (minCounts.get(k) || 0) + 1);
+        }
+      });
+
+      const modeStats = Object.values(modes).map(m => {
+        const avg = m.diffs.length ? (m.diffs.reduce((a, b) => a + b, 0) / m.diffs.length).toFixed(1) : "—";
+        const max = m.diffs.length ? Math.max(...m.diffs) : "—";
+        return { label: m.label, count: m.diffs.length, avg, max };
+      });
+
+      const topMax = [...maxCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([ch, cnt]) => ({
+        ch,
+        cnt,
+        pct: state.rows.length ? ((cnt / state.rows.length) * 100).toFixed(1) : "0.0",
+        loc: formatCellLocation(latest?.piles, ch)
+      }));
+
+      const topMin = [...minCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([ch, cnt]) => ({
+        ch,
+        cnt,
+        pct: state.rows.length ? ((cnt / state.rows.length) * 100).toFixed(1) : "0.0",
+        loc: formatCellLocation(latest?.piles, ch)
+      }));
+
+      const piles = Array.isArray(latest?.piles) ? latest.piles : [];
+      const pilesComp = piles.map((p, idx) => {
+        const cells = flattenPileCells(p).map(c => c.mv);
+        const diff = cells.length ? Math.max(...cells) - Math.min(...cells) : 0;
+        return {
+          idx: idx + 1,
+          v: Number(p.v || 0).toFixed(1),
+          i: Number(p.i || 0).toFixed(2),
+          soc: p.soc ?? "—",
+          soh: p.soh ?? "—",
+          t: Number(p.t || 0).toFixed(1),
+          diff
+        };
+      });
+
+      const selPile = piles[state.selectedPileIdx];
+      const mods = Array.isArray(selPile?.mods) ? selPile.mods : [];
+      const modRanking = mods.map((m, mIdx) => {
+        const mvs = (m.cells || []).map(c => (typeof c === "number" ? c : c?.mv)).filter(v => v != null);
+        const min = mvs.length ? Math.min(...mvs) : 0;
+        const max = mvs.length ? Math.max(...mvs) : 0;
+        return {
+          modIdx: mIdx + 1,
+          v: m.v != null ? Number(m.v).toFixed(2) : "—",
+          t: m.t != null ? Number(m.t).toFixed(1) : "—",
+          minV: (min / 1000).toFixed(3),
+          maxV: (max / 1000).toFixed(3),
+          diff: max - min
+        };
+      }).sort((a, b) => b.diff - a.diff);
+
+      return { latest, modeStats, topMax, topMin, pilesComp, modRanking };
+    }
+
+    function renderAnalysis() {
+      const { latest, modeStats, topMax, topMin, pilesComp, modRanking } = computeAnalysisData();
+      document.getElementById("analysisWindowBadge").textContent =
+        `${state.rows.length} bodů • ${getSamplingLabel(state.rangeMinutes)}`;
+
+      document.getElementById("modeDeltaTable").innerHTML = `
+        <table>
+          <thead><tr><th>Režim</th><th>Vzorků</th><th>Průměr Δ</th><th>Max Δ</th></tr></thead>
+          <tbody>
+            ${modeStats.map(m => `
+              <tr>
+                <td><strong>${m.label}</strong></td>
+                <td>${m.count}</td>
+                <td>${m.avg === "—" ? "—" : m.avg + " mV"}</td>
+                <td>${m.max === "—" ? "—" : m.max + " mV"}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+
+      document.getElementById("pilesComparisonTable").innerHTML = pilesComp.length ? `
+        <table>
+          <thead><tr><th>Věž</th><th>Napětí</th><th>Proud</th><th>SOC / SOH</th><th>Teplota</th><th>Δ článků</th></tr></thead>
+          <tbody>
+            ${pilesComp.map(p => `
+              <tr>
+                <td><strong>Věž #${p.idx}</strong></td>
+                <td>${p.v} V</td>
+                <td>${Number(p.i) >= 0 ? "+" : ""}${p.i} A</td>
+                <td>${p.soc}% / ${p.soh}%</td>
+                <td>${p.t} °C</td>
+                <td><strong>${p.diff} mV</strong></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      ` : `<div class="sub" style="color:var(--text-muted);padding-top:8px;">Data o věžích nejsou v aktuálním snímku k dispozici.</div>`;
+
+      const renderCulprits = rows => rows.length ? `
+        <table>
+          <thead><tr><th>Kanál / Umístění</th><th>Výskyt</th><th>Podíl</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td><strong>${r.loc}</strong></td>
+                <td>${r.cnt}×</td>
+                <td>${r.pct} %</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      ` : `<div class="sub" style="color:var(--text-muted);padding-top:8px;">Nedostatek dat v okně.</div>`;
+
+      document.getElementById("topMaxCulpritsTable").innerHTML = renderCulprits(topMax);
+      document.getElementById("topMinCulpritsTable").innerHTML = renderCulprits(topMin);
+
+      document.getElementById("modulesRankingTable").innerHTML = modRanking.length ? `
+        <table>
+          <thead><tr><th>Modul (Věž #${state.selectedPileIdx + 1})</th><th>Napětí</th><th>Teplota</th><th>Min – Max článek</th><th>Rozdíl Δ</th></tr></thead>
+          <tbody>
+            ${modRanking.map(m => `
+              <tr>
+                <td><strong>Modul #${m.modIdx}</strong></td>
+                <td>${m.v} V</td>
+                <td>${m.t} °C</td>
+                <td>${m.minV} – ${m.maxV} V</td>
+                <td><strong>${m.diff} mV</strong></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      ` : `<div class="sub" style="color:var(--text-muted);padding-top:8px;">Žádné moduly k zobrazení.</div>`;
+    }
+
+    function buildLocalDiagnosis() {
+      const { latest, modeStats, topMax, topMin, modRanking } = computeAnalysisData();
+      if (!latest) return "Nejsou k dispozici žádná data k vyhodnocení.";
+
+      const curDiffMv = (latest.cell_max_voltage_v != null && latest.cell_min_voltage_v != null)
+        ? Math.round((latest.cell_max_voltage_v - latest.cell_min_voltage_v) * 1000)
+        : 0;
+
+      const chargeMode = modeStats.find(m => m.label.startsWith("Nabíjení"));
+      const idleMode = modeStats.find(m => m.label.startsWith("Klid"));
+      const worstMod = modRanking[0];
+      const topMaxCell = topMax[0];
+      const topMinCell = topMin[0];
+
+      const lines = [];
+      lines.push(`Aktuální rozdíl napětí článků: ${curDiffMv} mV (SOC ${latest.soc_pct}%, proud ${Number(latest.current_a).toFixed(2)} A).`);
+
+      if (curDiffMv < 25) {
+        lines.push("• Stav vyrovnání: Rozdíly napětí mezi články jsou nízké. Není nutný zásah, stačí běžný provoz a sledování při vysokém SOC (>90 %) nebo při zátěži.");
+      } else if (curDiffMv < 60) {
+        lines.push("• Stav vyrovnání: Mírná odchylka článků. Často jde o přechodný jev při nabíjení/vybíjení nebo drobné rozbalancování – vyplatí se sledovat, zda se rozdíl v klidu a při plném nabití srovnává (balancování BMS).");
+      } else {
+        lines.push("• Stav vyrovnání: Výraznější rozdíl článků (≥60 mV). Doporučuji sledovat chování na horním konci nabití i v klidu, zkontrolovat teploty a případné přechodové odpory/kontakty u nejvíce zatíženého modulu.");
+      }
+
+      if (worstMod) {
+        lines.push(`• Největší odchylka v modulu: Modul #${worstMod.modIdx} má Δ ${worstMod.diff} mV (${worstMod.minV}–${worstMod.maxV} V, ${worstMod.t} °C).`);
+      }
+
+      if (topMaxCell || topMinCell) {
+        lines.push(
+          `• Nejčastější extrémy v okně: Max nejčastěji ${topMaxCell ? topMaxCell.loc + " (" + topMaxCell.pct + "%)" : "—"}, ` +
+          `Min nejčastěji ${topMinCell ? topMinCell.loc + " (" + topMinCell.pct + "%)" : "—"}.`
+        );
+      }
+
+      if (chargeMode?.max !== "—" && idleMode?.max !== "—") {
+        lines.push(
+          `• Režimy: Max Δ při nabíjení ${chargeMode.max} mV (průměr ${chargeMode.avg} mV), v klidu max Δ ${idleMode.max} mV (průměr ${idleMode.avg} mV). ` +
+          `Pokud velký rozdíl mizí v klidu a objevuje se hlavně při proudu, hraje roli vnitřní odpor / dynamický úbytek; pokud drží i v klidu, jde spíš o rozdílný SOC / balancování.`
+        );
+      }
+
+      lines.push("• Kdy zvažovat servis / výměnu: Pouze pokud se konkrétní článek či modul dlouhodobě extrémně odlišuje i v klidu, rychle padá pod zátěží nebo vyvolává varování/chyby BMS – u LiFePO4 sestav dává smysl nejprve ověřit balancování a kontaktní spoje před unáhlenými závěry.");
+
+      return lines.join("\n");
+    }
+
+    document.getElementById("runLocalDiagBtn").addEventListener("click", () => {
+      document.getElementById("aiDiagnosisOutput").textContent = buildLocalDiagnosis();
+    });
+
+    document.getElementById("runAiDiagBtn").addEventListener("click", async () => {
+      const outEl = document.getElementById("aiDiagnosisOutput");
+      const apiKey = geminiInput.value.trim();
+      if (!apiKey) {
+        outEl.textContent = "Zadej prosím Gemini API klíč (nebo použij tlačítko „Lokální doporučení“).";
+        return;
+      }
+
+      const data = computeAnalysisData();
+      if (!data.latest) {
+        outEl.textContent = "Nejsou k dispozici žádná data k analýze.";
+        return;
+      }
+
+      outEl.textContent = "Analyzuji telemetrii přes Gemini AI…";
+
+      const prompt = [
+        "Jsi zkušený technik bateriových úložišť (LiFePO4 HV BMS/MBMS). Stručně, věcně a česky zhodnoť stav baterie podle těchto dat a navrhni praktické kroky (balancování, sledování, kontrola spojů vs. případná výměna):",
+        JSON.stringify({
+          recorded_at: data.latest.recorded_at,
+          total_voltage_v: data.latest.total_voltage_v,
+          current_a: data.latest.current_a,
+          power_kw: data.latest.power_kw,
+          soc_pct: data.latest.soc_pct,
+          soh_pct: data.latest.soh_pct,
+          cycles: data.latest.cycles,
+          cell_min_voltage_v: data.latest.cell_min_voltage_v,
+          cell_max_voltage_v: data.latest.cell_max_voltage_v,
+          cell_diff_mv: Math.round((data.latest.cell_max_voltage_v - data.latest.cell_min_voltage_v) * 1000),
+          cell_min_temp_c: data.latest.cell_min_temp_c,
+          cell_max_temp_c: data.latest.cell_max_temp_c,
+          err_code_1: data.latest.err_code_1,
+          err_code_2: data.latest.err_code_2,
+          mode_delta_stats: data.modeStats,
+          top_max_cells: data.topMax,
+          top_min_cells: data.topMin,
+          piles_comparison: data.pilesComp,
+          modules_ranking_selected_pile: data.modRanking.slice(0, 8)
+        })
+      ].join("\n\n");
+
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+        }
+
+        const json = await res.json();
+        const text = json?.candidates?.[0]?.content?.parts?.map(p => p.text).join("\n") || "Prázdná odpověď z modelu.";
+        outEl.textContent = text;
+      } catch (err) {
+        outEl.textContent = "Chyba při volání Gemini API: " + err.message;
+      }
+    });
 
     // --- Ovládací prvky ---
     document.getElementById("deviceSelect").addEventListener("change", e => {
